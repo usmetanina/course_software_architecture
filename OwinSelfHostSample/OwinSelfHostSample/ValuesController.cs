@@ -56,6 +56,7 @@ namespace OwinSelfHostSample
         // DELETE /values/5 
         public void Delete(int id)
         {
+            //async 
             val.Remove(id);
             WriteDictToLog(id,"deleted");
         }

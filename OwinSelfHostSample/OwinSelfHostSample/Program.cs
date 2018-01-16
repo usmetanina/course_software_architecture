@@ -15,10 +15,25 @@ namespace OwinSelfHostSample
 
         public static Dictionary<int, string> getDB(string path)
         {
-            var arr = File.ReadLines(path)
-                            .Select(line => line.Split(';'))
-                            .Where( split => split[0] != "Id" )
-                            .ToDictionary(split => int.Parse(split[0]), split => split[1]);
+            var arr = new Dictionary<int, string>();
+
+            if (!File.Exists(path))
+            {
+                File.Create(path);
+            }
+            else
+            {
+                foreach (var item in File.ReadLines(path).ToList())
+                {
+                    var words = item.Split(';');
+                    arr[int.Parse(words[0])] = words[1];
+                }
+            }
+
+            //var arr = File.ReadLines(path)
+            //                .Select(line => line.Split(';'))
+            //                .Where( split => split[0] != "Id" )
+            //                .ToDictionary(split => int.Parse(split[0]), split => split[1]);
             return arr;
             //return (Dictionary<int, string>)arr.Where(a => a.Value != "deleted");
 
