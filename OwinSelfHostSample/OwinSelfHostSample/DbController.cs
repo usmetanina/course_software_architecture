@@ -29,5 +29,12 @@ namespace OwinSelfHostSample
             //}
             return "200 OK";
         }
+
+        // GET /db get count of elements 
+        public int Get()
+        {
+            return Storage.val.Count;
+        }
+
     }
 }

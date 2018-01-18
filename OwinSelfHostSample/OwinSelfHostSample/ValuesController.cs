@@ -64,10 +64,11 @@ namespace OwinSelfHostSample
         //}
 
         // DELETE /values/5 
-        public void Delete(int id)
+        public string Delete(int id)
         {
             Storage.val.Remove(id);
             Storage.WriteDictToLog(id,"deleted");
+            return "200 OK";
         }
     }
 }
