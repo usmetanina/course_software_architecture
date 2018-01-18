@@ -16,7 +16,7 @@ namespace OwinSelfHostSample
         public string Delete()
         {
             Console.WriteLine("clear DB");
-            ValuesController.val.Clear();
+            Storage.val.Clear();
 
             File.WriteAllText(pathDB, string.Empty);
             File.WriteAllText(pathLog, string.Empty);
