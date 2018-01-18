@@ -13,20 +13,42 @@ using System.Threading;
 
 namespace ScriptTest
 {
-    class Script
+    class myThread
     {
-        //void Script() { }
+        Thread thread;
+        public myThread()
+        {
+            thread = new Thread(this.run_script);
+            thread.Start();
+        }
+
         string url = "http://localhost:9000/";
         HttpClient client = new HttpClient();
 
-        private async Task Put(int id, string value)
+        private string Put(int id, string value)
         {
             var jsonString = JsonConvert.SerializeObject(value);
             var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
-            var response = await client.PutAsync(url + "values/" + id, content);
-            
-            //return response.Content.ReadAsStringAsync().Result;
+            var response = client.PutAsync(url + "values/" + id, content).Result;
+            return response.Content.ReadAsStringAsync().Result;
         }
+
+
+        //private async Task<string> Put(int id, string value)
+        //{
+        //    var jsonString = JsonConvert.SerializeObject(value);
+        //    var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+        //    var response = await client.PutAsync(url + "values/" + id, content);
+        //    //using (var response = await client.PutAsync(url + "values/" + id, content))
+        //    //{
+        //    //    if (response.StatusCode == System.Net.HttpStatusCode.OK)
+        //    //    {
+        //    //        var contents = await response.Content.ReadAsStringAsync();
+        //    //        //var result = contents.Result;
+        //    //    }
+        //    //}
+        //    return response.Content.ReadAsStringAsync().Result;
+        //}
 
         private string Get()
         {
@@ -39,7 +61,7 @@ namespace ScriptTest
             return responses.Content.ReadAsStringAsync().Result;
         }
 
-        public void run_script()
+        private void run_script()
         {
             client.DeleteAsync(url + "db/");
 
@@ -48,8 +70,8 @@ namespace ScriptTest
                 Random rnd = new Random();
                 int number = rnd.Next();
                 //Task.WaitAll(Task.Run(() => Put(number, number + "ths")));
-                Put(number, number + "ths").Wait();
-                Console.WriteLine(i);
+                Put(number, number + "ths");
+                //Thread.Sleep(500);
             }
 
             var answers_json = Get();
@@ -66,8 +88,7 @@ namespace ScriptTest
             }
 
             var answer = Put(1, "first");
-
-            if ("200 OK".Equals(answer))
+            if ("\"200 OK\"".Equals(answer))
             {
                 Console.WriteLine("OK put first");
             }
@@ -77,7 +98,7 @@ namespace ScriptTest
             }
 
             var answers = Get(1);
-            if ("first".Equals(answers))
+            if ("\"first\"".Equals(answers))
             {
                 Console.WriteLine("OK get first");
             }
@@ -86,22 +107,9 @@ namespace ScriptTest
                 Console.WriteLine("NOT get first");
             }
 
-
-            Put(1, "first");
-            answers = Get(1);
-            if ("200 OK".Equals(answers))
-            {
-                Console.WriteLine("OK put first");
-            }
-            else
-            {
-                Console.WriteLine("NOT put first");
-            }
-
-
             Put(1, "first_first");
             answers = Get(1);
-            if ("200 OK".Equals(answers))
+            if ("\"first_first\"".Equals(answers))
             {
                 Console.WriteLine("OK edit first");
             }
@@ -115,7 +123,7 @@ namespace ScriptTest
             var deleted = client.DeleteAsync(url + "values/" + id).Result;
             var response = client.GetAsync(url + "values/" + id).Result;
             answers = response.Content.ReadAsStringAsync().Result;
-            if ("404 Not Found".Equals(answers))
+            if ("\"404 Not Found\"".Equals(answers))
             {
                 Console.WriteLine("OK delete first");
             }
@@ -130,9 +138,9 @@ namespace ScriptTest
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Test script run \n ================");
-            var a = new Script();
-            a.run_script();
+            Console.WriteLine("Test scripts run \n ================");
+            myThread t1 = new myThread();
+            myThread t2 = new myThread();
             Console.WriteLine("Test script done \n ================");
             Console.WriteLine("Press any key to quit.");
             Console.ReadLine();

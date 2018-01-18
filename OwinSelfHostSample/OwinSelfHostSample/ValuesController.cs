@@ -52,6 +52,21 @@ namespace OwinSelfHostSample
                 WriteDictToLog(id, value);
             return "200 OK";
         }
+        //public string Put(int id, [FromBody]string value)
+        //{
+        //    Task t = Task.Run(() => {
+        //       val[id] = value;
+        //       if (val.Count % 5 == 0)
+        //           WriteDictToFile();
+        //       else
+        //           WriteDictToLog(id, value);
+        //       //return "200 OK";
+        //   });
+        //    while (true)
+        //    {
+        //        if (t.IsCompleted) return "200 OK";
+        //    }
+        //}
 
         // DELETE /values/5 
         public void Delete(int id)
