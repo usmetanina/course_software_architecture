@@ -60,7 +60,7 @@ namespace OwinSelfHostSample
                 foreach (var item in File.ReadLines(path).ToList())
                 {
                     var words = item.Split(';');
-                    arr[int.Parse(words[0])] = words[1];
+                    arr.Add(int.Parse(words[0]), words[1]);
                 }
             }
 
