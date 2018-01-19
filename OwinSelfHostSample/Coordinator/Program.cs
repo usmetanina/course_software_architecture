@@ -12,6 +12,7 @@ namespace Coordinator
     {
         static public string port;
         public static string countNode;
+        public static string pathKeyBucketTable = "key_bucket.txt";
         public static List<string> nodePorts = new List<string>();
 
         public static Dictionary<int, List<int>> keyBucketTable
@@ -19,8 +20,9 @@ namespace Coordinator
 
         public static Dictionary<int, int> bucketShardTable = new Dictionary<int, int>();
 
-        static public void LoadBucketShardTable(string path)
+        static public Dictionary<int, int> LoadBucketShardTable(string path)
         {
+            var table = new Dictionary<int, int>();
             Console.WriteLine("path " + path);
             if (!File.Exists(path))
             {
@@ -33,13 +35,37 @@ namespace Coordinator
                     var words = item.Split(';');
                     Console.WriteLine("я в load bucketshard, bucket is " + int.Parse(words[0]));
                     Console.WriteLine("я в load bucketshard, shard is " + int.Parse(words[1]));
-                    bucketShardTable.Add(int.Parse(words[0]),int.Parse(words[1]));
+                    table.Add(int.Parse(words[0]),int.Parse(words[1]));
+                }
+            }
+            return table;
+        }
+
+        static public void WriteKeyBucketTable()
+        {
+            if (!File.Exists(pathKeyBucketTable))
+            {
+                File.Create(pathKeyBucketTable);
+            }
+            else
+            {
+            using (StreamWriter wr = new StreamWriter(pathKeyBucketTable, false))
+                {
+                    foreach (var row in keyBucketTable)
+                    {
+                        wr.Write(row.Key);
+                        string keys = "";
+                        foreach (var item in row.Value)
+                            keys += ";" + item.ToString();
+                        wr.WriteLine(keys);
+                    }
                 }
             }
         }
 
-        static public void LoadKeyBucketTable(string path)
+        static public new Dictionary<int, List<int>> LoadKeyBucketTable(string path)
         {
+            var table = new Dictionary<int, List<int>>();
             Console.WriteLine("path " + path);
             if (!File.Exists(path))
             {
@@ -56,11 +82,13 @@ namespace Coordinator
                     var arr = new List<int>();
                     for (int i = 1; i < words.Length; i++)
                     {
-                        arr.Add(i);
+                        Console.WriteLine("я в load keybucket, key" + int.Parse(words[i]));
+                        arr.Add(int.Parse(words[i]));
                     }
-                    keyBucketTable.Add(bucket,arr);
+                    table.Add(bucket, arr);
                 }
             }
+            return table;
         }
     }
 
@@ -79,19 +107,22 @@ namespace Coordinator
             Console.WriteLine(Storage.nodePorts[0]);
             Console.WriteLine(Storage.nodePorts[1]);
 
-            Storage.LoadKeyBucketTable("key_bucket.txt");
+            Storage.keyBucketTable = Storage.LoadKeyBucketTable("key_bucket.txt");
             Console.WriteLine(Storage.keyBucketTable.Count);
-            Storage.LoadBucketShardTable("bucket_shard.txt");
-            Console.WriteLine(Storage.bucketShardTable[1]);
-            Console.WriteLine(Storage.bucketShardTable[5]);
-            //RelocationHandler relocHandler = new RelocationHandler();
-            //relocHandler.Reshard();
+            Storage.bucketShardTable = Storage.LoadBucketShardTable("bucket_shard.txt");
+            Console.WriteLine("bucketShardTable[1] = " + Storage.bucketShardTable[1]);
+            Console.WriteLine("bucketShardTable[5] = "+ Storage.bucketShardTable[5]);
+            Console.WriteLine("load keybackettable "+ Storage.keyBucketTable[0] +' '+ Storage.keyBucketTable[0][1] + ' ' + Storage.keyBucketTable[0][2]);
 
             string baseAddress = "http://localhost:" + Storage.port + "/";
             using (WebApp.Start<OwinSelfHostSample.Startup>(url: baseAddress))
             {
                 Console.WriteLine("Proxy starts on port " + Storage.port);
                 Console.WriteLine("Press any key to quit.");
+
+                RelocationHandler relocHandler = new RelocationHandler();
+                relocHandler.Reshard();
+
                 Console.ReadLine();
                 // Create HttpCient and make a request to api/values 
                 //HttpClient client = new HttpClient();

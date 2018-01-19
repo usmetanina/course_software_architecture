@@ -19,12 +19,9 @@ namespace OwinSelfHostSample
 
         static public void WriteDictToFile()
         {
-            //System.IO.File.AppendAllText(pathLog, String.Empty);
             if (File.Exists(pathLog))
             {
-                StreamWriter Writer = new StreamWriter(pathLog, false, Encoding.UTF8);
-                Writer.WriteLine("");
-                Writer.Close();
+                File.WriteAllText(pathLog, string.Empty);
             }
 
             StreamWriter file = new StreamWriter(pathDB);
@@ -60,7 +57,26 @@ namespace OwinSelfHostSample
                 foreach (var item in File.ReadLines(path).ToList())
                 {
                     var words = item.Split(';');
-                    arr.Add(int.Parse(words[0]), words[1]);
+                    
+
+                    if (arr.ContainsKey(int.Parse(words[0])))
+                    {
+                        Console.WriteLine("double key " + words[0]);
+                        arr[int.Parse(words[0])] = words[1];
+                    }
+                    else
+                    {
+                        if (Storage.val.ContainsKey(int.Parse(words[0])))
+                        {
+                            Storage.val[int.Parse(words[0])] = words[1];
+                            Console.WriteLine("double key " + words[0]);
+                        }
+                        else
+                        {
+                            Console.WriteLine("no double");
+                            arr.Add(int.Parse(words[0]), words[1]);
+                        }
+                    }
                 }
             }
 
