@@ -21,10 +21,9 @@ namespace Coordinator
             {
                 Console.WriteLine("old shard " + row.Value);
                 Console.WriteLine("new shard " + Storage.bucketShardTable[row.Key]);
-                Console.WriteLine(Storage.keyBucketTable[row.Key][0]+ Storage.keyBucketTable[row.Key][1]+ Storage.keyBucketTable[row.Key][2]);
                 if (row.Value != Storage.bucketShardTable[row.Key])
                 {
-                    new ValuesController().SendOn(Storage.keyBucketTable[row.Key], row.Value, Storage.bucketShardTable[row.Key]);
+                    new ProxyController().SendOn(Storage.keyBucketTable[row.Key], row.Value, Storage.bucketShardTable[row.Key]);
                     Console.WriteLine("");
                     //Reshard(ProxyStorage.bucketShardTable[row.Key], row.Value, FindRowsFromBucket(row.Key));
                     //bst.ChangeShard(row.Key, BSTable[row.Key]);

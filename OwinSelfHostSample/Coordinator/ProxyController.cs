@@ -12,11 +12,11 @@ using Newtonsoft.Json;
 
 namespace OwinSelfHostSample
 {
-    public class ValuesController : ApiController
+    public class ProxyController : ApiController
     {
         Client client = new Client();
 
-        public string getUrl(int id)
+        public string CombineUrl(int id)
         {
             Console.WriteLine("key=id " + id);
             var bucket = ShardFunction(id);
@@ -39,15 +39,18 @@ namespace OwinSelfHostSample
         {
             Console.WriteLine("hi");
             Console.WriteLine("get " + id);
-            client.url = getUrl(id);
+            client.url = CombineUrl(id);
             return client.Get(id);
         }
 
         // PUT /values/5 
         public string Put(int id, [FromBody]string value)
         {
-            client.url = getUrl(id);
-            Storage.keyBucketTable[ShardFunction(id)].Add(id);
+            client.url = CombineUrl(id);
+            if (!Storage.keyBucketTable[ShardFunction(id)].Contains(id))
+            {
+                Storage.keyBucketTable[ShardFunction(id)].Add(id);
+            }
             //var response = client.Put(id, value);
             Storage.WriteKeyBucketTable();
             return client.Put(id, value);// response;
@@ -57,7 +60,7 @@ namespace OwinSelfHostSample
         // DELETE /values/5 
         public string Delete(int id)
         {
-            client.url = getUrl(id);
+            client.url = CombineUrl(id);
             Storage.keyBucketTable[ShardFunction(id)].Remove(id);
             var response = client.Delete(id);
             Storage.WriteKeyBucketTable();

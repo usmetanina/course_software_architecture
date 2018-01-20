@@ -6,17 +6,18 @@ using System.Threading.Tasks;
 
 using System.Web.Http;
 using System.IO;
+using Coordinator;
 
 namespace OwinSelfHostSample
 {
     public class ValuesController : ApiController
     {
                       
-        // GET /values 
-        public Dictionary<int, string> Get()
-        {
-            return Storage.val;
-        }
+        //// GET /values 
+        //public Dictionary<int, string> Get()
+        //{
+        //    return Storage.val;
+        //}
 
         // GET /values/5 
         public string Get(int id)
@@ -32,11 +33,6 @@ namespace OwinSelfHostSample
             }
         }
 
-        // POST /values 
-        public void Post([FromBody]string value)
-        {
-        }
-
         // PUT /values/5 
         public string Put(int id, [FromBody]string value)
         {
@@ -45,6 +41,17 @@ namespace OwinSelfHostSample
                 Storage.WriteDictToFile();
             else
                 Storage.WriteDictToLog(id, value);
+
+            Client client = new Client();
+            foreach (var port in Storage.slaves)
+            {
+                Console.WriteLine("write to " + port);
+                client.url = "http://localhost:" + port + "/values/" + id;
+                Console.WriteLine(client.url);
+                client.Put(id, value);
+
+            }
+
             return "200 OK";
         }
         //public string Put(int id, [FromBody]string value)
@@ -68,6 +75,14 @@ namespace OwinSelfHostSample
         {
             Storage.val.Remove(id);
             Storage.WriteDictToLog(id,"deleted");
+
+            Client client = new Client();
+            foreach (var port in Storage.slaves)
+            {
+                client.url = "http://localhost:" + port + "/values/" + id; ;
+                client.Delete(id);
+            }
+
             return "200 OK";
         }
     }

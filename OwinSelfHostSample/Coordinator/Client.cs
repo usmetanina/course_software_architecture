@@ -14,11 +14,11 @@ namespace Coordinator
         public string url = "http://localhost:9000";
         HttpClient client = new HttpClient();
 
-        public string Get()
-        {
-            var responses = client.GetAsync(url).Result;
-            return responses.Content.ReadAsStringAsync().Result;
-        }
+        //public string Get()
+        //{
+        //    var responses = client.GetAsync(url).Result;
+        //    return responses.Content.ReadAsStringAsync().Result;
+        //}
 
         public string Get(int id)
         {

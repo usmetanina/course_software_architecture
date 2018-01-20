@@ -110,9 +110,6 @@ namespace Coordinator
             Storage.keyBucketTable = Storage.LoadKeyBucketTable("key_bucket.txt");
             Console.WriteLine(Storage.keyBucketTable.Count);
             Storage.bucketShardTable = Storage.LoadBucketShardTable("bucket_shard.txt");
-            Console.WriteLine("bucketShardTable[1] = " + Storage.bucketShardTable[1]);
-            Console.WriteLine("bucketShardTable[5] = "+ Storage.bucketShardTable[5]);
-            Console.WriteLine("load keybackettable "+ Storage.keyBucketTable[0] +' '+ Storage.keyBucketTable[0][1] + ' ' + Storage.keyBucketTable[0][2]);
 
             string baseAddress = "http://localhost:" + Storage.port + "/";
             using (WebApp.Start<OwinSelfHostSample.Startup>(url: baseAddress))

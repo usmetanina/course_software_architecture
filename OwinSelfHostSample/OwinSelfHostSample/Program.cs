@@ -16,6 +16,7 @@ namespace OwinSelfHostSample
         public static string pathLog;
         public static string pathDB;
         public static Dictionary<int, string> val = new Dictionary<int, string>();
+        public static List<string> slaves;
 
         static public void WriteDictToFile()
         {
@@ -92,6 +93,7 @@ namespace OwinSelfHostSample
         {
             Console.WriteLine(args[0]);
             Storage.port = args[0];
+            Storage.slaves = args.Skip(1).ToList();
             Console.WriteLine(Storage.port);
             Storage.pathDB = "fileDB_" + args[0] + ".txt";
             Storage.pathLog = "fileLog_" + args[0]+ ".txt";
@@ -108,14 +110,6 @@ namespace OwinSelfHostSample
                 Console.WriteLine("Web Server starts on port " + Storage.port);
                 Console.WriteLine("Press any key to quit.");
                 Console.ReadLine();
-                // Create HttpCient and make a request to api/values 
-                //HttpClient client = new HttpClient();
-
-                //var response = client.GetAsync(baseAddress + "values").Result;
-
-                //Console.WriteLine(response);
-                //Console.WriteLine(response.Content.ReadAsStringAsync().Result);
-                //Console.ReadLine();
             }
         }
     }
