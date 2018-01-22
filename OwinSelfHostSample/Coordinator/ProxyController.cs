@@ -1,14 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using System.Web.Http;
-using System.IO;
 using Coordinator;
-using System.Net.Http;
-using Newtonsoft.Json;
 
 namespace OwinSelfHostSample
 {
@@ -21,20 +14,18 @@ namespace OwinSelfHostSample
             Console.WriteLine("key=id " + id);
             var bucket = ShardFunction(id);
             Console.WriteLine("bucket=ostatok "+bucket);
-            var shard = Storage.bucketShardTable[bucket];
+            var shard = StorageProxy.bucketShardTable[bucket];
             Console.WriteLine("shard" + shard);
             return "http://localhost:" + shard + "/values/" + id;
         }
 
         private int ShardFunction(int key)
         {
-            //Console.WriteLine("Node ports " + Storage.nodePorts[0] + Storage.nodePorts[1]);
-            Console.WriteLine("ccount shard " + Storage.bucketShardTable.Count);
-            var bucket = key % Storage.bucketShardTable.Count;
+            Console.WriteLine("ccount shard " + StorageProxy.bucketShardTable.Count);
+            var bucket = key % StorageProxy.bucketShardTable.Count;
             return bucket;
         }
 
-        // GET /values/5 
         public string Get(int id)
         {
             Console.WriteLine("hi");
@@ -43,27 +34,25 @@ namespace OwinSelfHostSample
             return client.Get(id);
         }
 
-        // PUT /values/5 
         public string Put(int id, [FromBody]string value)
         {
             client.url = CombineUrl(id);
-            if (!Storage.keyBucketTable[ShardFunction(id)].Contains(id))
+            if (!StorageProxy.keyBucketTable[ShardFunction(id)].Contains(id))
             {
-                Storage.keyBucketTable[ShardFunction(id)].Add(id);
+                StorageProxy.keyBucketTable[ShardFunction(id)].Add(id);
             }
-            //var response = client.Put(id, value);
-            Storage.WriteKeyBucketTable();
-            return client.Put(id, value);// response;
+
+            StorageProxy.WriteKeyBucketTable();
+            return client.Put(id, value);
                 
         }
 
-        // DELETE /values/5 
         public string Delete(int id)
         {
             client.url = CombineUrl(id);
-            Storage.keyBucketTable[ShardFunction(id)].Remove(id);
+            StorageProxy.keyBucketTable[ShardFunction(id)].Remove(id);
             var response = client.Delete(id);
-            Storage.WriteKeyBucketTable();
+            StorageProxy.WriteKeyBucketTable();
             return response;
         }
 

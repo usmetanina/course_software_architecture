@@ -1,58 +1,61 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-
 using System.Web.Http;
-using System.IO;
 using Coordinator;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace OwinSelfHostSample
 {
     public class ValuesController : ApiController
     {
-                      
-        //// GET /values 
-        //public Dictionary<int, string> Get()
-        //{
-        //    return Storage.val;
-        //}
 
-        // GET /values/5 
         public string Get(int id)
         {
             Console.WriteLine(id);
-            if (!Storage.val.ContainsKey(id) || Storage.val[id]=="deleted")
+            if (!StorageDB.val.ContainsKey(id) || StorageDB.val[id]=="deleted")
             {
                 return "404 Not Found";
             }
             else
             {
-                return Storage.val[id];
+                return StorageDB.val[id];
             }
         }
 
-        // PUT /values/5 
         public string Put(int id, [FromBody]string value)
         {
-            Storage.val[id] = value;
-            if (Storage.val.Count % 5 == 0)
-                Storage.WriteDictToFile();
+            StorageDB.val[id] = value;
+            if (StorageDB.val.Count % 5 == 0)
+                StorageDB.WriteDictToFile();
             else
-                Storage.WriteDictToLog(id, value);
+                StorageDB.WriteDictToLog(id, value);
 
             Client client = new Client();
-            foreach (var port in Storage.slaves)
-            {
-                Console.WriteLine("write to " + port);
-                client.url = "http://localhost:" + port + "/values/" + id;
-                Console.WriteLine(client.url);
-                client.Put(id, value);
+            WriteToReplics(id, value);
 
-            }
-
+            //foreach (var port in StorageTable.slaves)
+            //{
+            //    Console.WriteLine("write to " + port);
+            //    client.url = "http://localhost:" + port + "/values/" + id;
+            //    Console.WriteLine(client.url);
+            //    client.Put(id, value);
+            //}
             return "200 OK";
+        }
+
+        async private void WriteToReplics(int id, string value)
+        {
+            var httpClient = new HttpClient();
+            foreach (var port in StorageDB.slaves)
+            {
+                var jsonString = JsonConvert.SerializeObject(value);
+                var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+                Console.WriteLine("write to " + port + " " + DateTime.Now.Millisecond);
+                var request = httpClient.PutAsync("http://localhost:" + port + "/values/" + id, content).Result;
+                var response = await request.Content.ReadAsStringAsync();
+                Console.WriteLine("wrote to " + port + " " + DateTime.Now.Millisecond);
+            }
         }
         //public string Put(int id, [FromBody]string value)
         //{
@@ -70,19 +73,17 @@ namespace OwinSelfHostSample
         //    }
         //}
 
-        // DELETE /values/5 
         public string Delete(int id)
         {
-            Storage.val.Remove(id);
-            Storage.WriteDictToLog(id,"deleted");
+            StorageDB.val.Remove(id);
+            StorageDB.WriteDictToLog(id,"deleted");
 
             Client client = new Client();
-            foreach (var port in Storage.slaves)
+            foreach (var port in StorageDB.slaves)
             {
                 client.url = "http://localhost:" + port + "/values/" + id; ;
                 client.Delete(id);
             }
-
             return "200 OK";
         }
     }

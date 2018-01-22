@@ -1,7 +1,4 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Owin;
-using System.Web.Http;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.Text;
@@ -12,26 +9,26 @@ namespace UnitTestProject1
     [TestClass]
     public class UnitTest1
     {
-        string url = "http://localhost:9000/";
+        string url = "http://localhost:9000/proxy/";
         HttpClient client = new HttpClient();
 
         private string Put(int id, string value)
         {
             var jsonString = JsonConvert.SerializeObject(value);
             var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
-            var response = client.PutAsync(url + "values/" + id, content).Result;
+            var response = client.PutAsync(url + id, content).Result;
             return response.Content.ReadAsStringAsync().Result;
         }
 
         private string Get()
         {
-            var responses = client.GetAsync(url + "values/").Result;
+            var responses = client.GetAsync(url).Result;
             return responses.Content.ReadAsStringAsync().Result;
         }
 
         private string Get(int id)
         {
-            var responses = client.GetAsync(url + "values/"+id).Result;
+            var responses = client.GetAsync(url + id).Result;
             return responses.Content.ReadAsStringAsync().Result;
         }
 
@@ -81,9 +78,9 @@ namespace UnitTestProject1
         {
             HttpClient client = new HttpClient();
             var id = 1;
-            var deleted = client.DeleteAsync(url + "values/" + id).Result;
+            var deleted = client.DeleteAsync(url + id).Result;
 
-            var response = client.GetAsync(url + "values/" + id).Result;
+            var response = client.GetAsync(url + id).Result;
             var answer = response.Content.ReadAsStringAsync().Result;
             Assert.AreEqual("\"404 Not Found\"", answer);
         }

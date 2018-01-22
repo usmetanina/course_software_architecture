@@ -1,15 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
-using System.Net.Http;
-using Newtonsoft.Json;
-using System.Text;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading;
+using Coordinator;
 
 namespace ScriptTest
 {
@@ -22,16 +13,8 @@ namespace ScriptTest
             thread.Start();
         }
 
-        string url = "http://localhost:9000/";
-        HttpClient client = new HttpClient();
-
-        private string Put(int id, string value)
-        {
-            var jsonString = JsonConvert.SerializeObject(value);
-            var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
-            var response = client.PutAsync(url + "values/" + id, content).Result;
-            return response.Content.ReadAsStringAsync().Result;
-        }
+        string url = "http://localhost:9000/proxy/";
+        Client client = new Client();
 
 
         //private async Task<string> Put(int id, string value)
@@ -50,44 +33,24 @@ namespace ScriptTest
         //    return response.Content.ReadAsStringAsync().Result;
         //}
 
-        private string Get()
-        {
-            var responses = client.GetAsync(url + "values/").Result;
-            return responses.Content.ReadAsStringAsync().Result;
-        }
-        private string Get(int id)
-        {
-            var responses = client.GetAsync(url + "values/" + id).Result;
-            return responses.Content.ReadAsStringAsync().Result;
-        }
-
         private void run_script()
         {
-            client.DeleteAsync(url + "db/");
+            //client.DeleteAsync(url + "db/");
 
             for (int i = 0; i < 200; i++)
             {
                 Random rnd = new Random();
                 int number = rnd.Next();
                 //Task.WaitAll(Task.Run(() => Put(number, number + "ths")));
-                Put(number, number + "ths");
-                //Thread.Sleep(500);
+                client.url = url + number;
+                client.Put(number, number + "ths");
+                Console.WriteLine(i);
             }
 
-            var answers_json = Get();
-            var itog_answers = JsonConvert.DeserializeObject<Dictionary<int, string>>(answers_json);
-            int countInsert = itog_answers.Count;
-            Console.WriteLine(countInsert);
-            if (200 == countInsert)
-            {
-                Console.WriteLine("OK insert 200");
-            }
-            else
-            {
-                Console.WriteLine("NOT insert 200");
-            }
-
-            var answer = Put(1, "first");
+            var id = 1;
+            client.url = url + id;
+            var answer = client.Put(1, "first");
+            Console.WriteLine(answer);
             if ("\"200 OK\"".Equals(answer))
             {
                 Console.WriteLine("OK put first");
@@ -97,7 +60,7 @@ namespace ScriptTest
                 Console.WriteLine("NOT put first");
             }
 
-            var answers = Get(1);
+            var answers = client.Get(1);
             if ("\"first\"".Equals(answers))
             {
                 Console.WriteLine("OK get first");
@@ -107,8 +70,8 @@ namespace ScriptTest
                 Console.WriteLine("NOT get first");
             }
 
-            Put(1, "first_first");
-            answers = Get(1);
+            client.Put(1, "first_first");
+            answers = client.Get(1);
             if ("\"first_first\"".Equals(answers))
             {
                 Console.WriteLine("OK edit first");
@@ -118,11 +81,9 @@ namespace ScriptTest
                 Console.WriteLine("NOT edit first");
             }
 
-
-            var id = 1;
-            var deleted = client.DeleteAsync(url + "values/" + id).Result;
-            var response = client.GetAsync(url + "values/" + id).Result;
-            answers = response.Content.ReadAsStringAsync().Result;
+            var deleted = client.Delete(id);
+            answers = client.Get(id);
+            //answers = response.Content.ReadAsStringAsync().Result;
             if ("\"404 Not Found\"".Equals(answers))
             {
                 Console.WriteLine("OK delete first");
